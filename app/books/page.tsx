@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BooksCatalog } from "./_components/BooksCatalog";
+import { fetchBooks } from "@/lib/api/books";
 import { mockBooks } from "@/lib/mock-books";
 
 export const metadata: Metadata = {
@@ -7,8 +8,9 @@ export const metadata: Metadata = {
   description: "Explora el catálogo y reserva tu próxima lectura.",
 };
 
-export default function BooksPage() {
-  const books = mockBooks;
+export default async function BooksPage() {
+  const apiBooks = await fetchBooks({ limit: 100 });
+  const books = apiBooks ?? mockBooks;
 
   return (
     <div className="flex-1 bg-zinc-50 dark:bg-black">
