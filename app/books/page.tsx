@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookList } from "./_components/BookList";
+import { BooksCatalog } from "./_components/BooksCatalog";
 import { mockBooks } from "@/lib/mock-books";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function BooksPage() {
           </p>
         </header>
 
-        <BookList books={books} />
+        <BooksCatalog books={books} />
       </div>
     </div>
   );
