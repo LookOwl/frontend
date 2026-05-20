@@ -6,7 +6,12 @@ type LoginResponse = {
   token_type: string;
 };
 
-export type AuthErrorCode = "invalid_credentials" | "network" | "unknown";
+export type AuthErrorCode =
+  | "invalid_credentials"
+  | "validation"
+  | "server"
+  | "network"
+  | "unknown";
 
 export class AuthError extends Error {
   constructor(
@@ -49,6 +54,20 @@ export async function loginUser(
     throw new AuthError(
       "invalid_credentials",
       "Correo o contraseña incorrectos.",
+    );
+  }
+
+  if (response.status === 422) {
+    throw new AuthError(
+      "validation",
+      "Revisa que el correo tenga un formato válido y la contraseña no esté vacía.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new AuthError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
     );
   }
 
