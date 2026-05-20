@@ -5,5 +5,7 @@ export const API_ENDPOINTS = {
   books: {
     list: "/api/books/",
   },
-
+  users: {
+    login: "/api/users/login",
+  },
 } as const;
