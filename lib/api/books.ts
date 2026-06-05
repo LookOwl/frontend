@@ -176,3 +176,75 @@ export async function registerBook(
   const data = (await response.json()) as { id: number };
   return data.id;
 }
+
+export type RequestLoanInput = {
+  bookId: number;
+  daysRequested: number;
+  interestWindow?: number;
+};
+
+export async function requestLoan(
+  input: RequestLoanInput,
+  accessToken: string,
+): Promise<void> {
+  const url = new URL(
+    `${API_ENDPOINTS.books.borrow}/${input.bookId}`,
+    API_BASE_URL,
+  );
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        book_id: input.bookId,
+        n_days_requested: input.daysRequested,
+        interest_window: input.interestWindow ?? 2,
+      }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new BookError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new BookError(
+      "unauthorized",
+      "Tu sesión expiró o no es válida. Inicia sesión de nuevo.",
+    );
+  }
+
+  // El backend responde 403 ante cualquier motivo que impida el préstamo
+  // (cola llena, demasiadas solicitudes, días fuera de rango, etc.).
+  if (response.status === 403) {
+    throw new BookError(
+      "forbidden",
+      "No se pudo solicitar el préstamo. Puede que el libro no esté disponible o que ya tengas demasiadas solicitudes en cola.",
+    );
+  }
+
+  if (response.status === 422) {
+    throw new BookError(
+      "validation",
+      "Revisa los datos del préstamo: los días solicitados deben ser un número válido (entre 1 y 13).",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new BookError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new BookError("unknown", "Ocurrió un error inesperado.");
+  }
+}

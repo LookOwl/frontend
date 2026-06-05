@@ -1,6 +1,7 @@
 import type { Book } from "@/types/book";
 import { BadgeList } from "./BadgeList";
 import { BookCover } from "./BookCover";
+import { BorrowButton } from "./BorrowButton";
 
 type BookCardProps = {
   book: Book;
@@ -65,12 +66,7 @@ export function BookCard({ book }: BookCardProps) {
           </div>
         </dl>
 
-        <button
-          type="button"
-          className="mt-1 inline-flex items-center justify-center rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          Reservar
-        </button>
+        <BorrowButton bookId={book.id} />
       </div>
     </article>
   );
