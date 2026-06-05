@@ -30,6 +30,38 @@ export type FetchBooksParams = {
   offset?: number;
 };
 
+export type RegisterBookInput = {
+  title: string;
+  isbn: string;
+  description: string;
+  editorial: string;
+  publicationDate: string;
+  coverUrl: string;
+  language: string;
+  authors: string[];
+  categories: string[];
+  pageCount: number;
+};
+
+export type BookErrorCode =
+  | "unauthorized"
+  | "forbidden"
+  | "conflict"
+  | "validation"
+  | "server"
+  | "network"
+  | "unknown";
+
+export class BookError extends Error {
+  constructor(
+    public readonly code: BookErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "BookError";
+  }
+}
+
 function mapBook(raw: BackendBook): Book {
   return {
     id: raw.id,
@@ -65,4 +97,82 @@ export async function fetchBooks(
   } catch {
     return null;
   }
+}
+
+export async function registerBook(
+  input: RegisterBookInput,
+  accessToken: string,
+): Promise<number> {
+  const url = new URL(API_ENDPOINTS.books.register, API_BASE_URL);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        title: input.title,
+        isbn: input.isbn,
+        description: input.description,
+        editorial: input.editorial,
+        publication_date: input.publicationDate,
+        cover_url: input.coverUrl,
+        language: input.language,
+        author: input.authors,
+        category: input.categories,
+        page_count: input.pageCount,
+      }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new BookError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new BookError(
+      "unauthorized",
+      "Tu sesión expiró o no es válida. Inicia sesión de nuevo.",
+    );
+  }
+
+  if (response.status === 403) {
+    throw new BookError(
+      "forbidden",
+      "Solo los bibliotecarios pueden registrar libros.",
+    );
+  }
+
+  if (response.status === 409) {
+    throw new BookError(
+      "conflict",
+      "No se pudo crear el libro. Puede que el ISBN ya exista.",
+    );
+  }
+
+  if (response.status === 422) {
+    throw new BookError(
+      "validation",
+      "Revisa los datos: el ISBN debe ser válido, el idioma debe tener 2 letras, la URL de portada debe ser válida y debe haber al menos un autor y una categoría.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new BookError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new BookError("unknown", "Ocurrió un error inesperado.");
+  }
+
+  const data = (await response.json()) as { id: number };
+  return data.id;
 }

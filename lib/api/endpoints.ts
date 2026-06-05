@@ -4,6 +4,7 @@ export const API_BASE_URL =
 export const API_ENDPOINTS = {
   books: {
     list: "/api/books/",
+    register: "/api/books/register",
   },
   users: {
     login: "/api/users/login",
