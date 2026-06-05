@@ -1,4 +1,4 @@
-import type { AuthSession } from "@/types/auth";
+import type { AuthSession, JwtPayload } from "@/types/auth";
 
 const STORAGE_KEY = "lookowl.auth.session";
 
@@ -25,4 +25,22 @@ export function getSession(): AuthSession | null {
 export function clearSession() {
   if (!isBrowser()) return;
   window.localStorage.removeItem(STORAGE_KEY);
+}
+
+function decodeJwt(token: string): JwtPayload | null {
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+  try {
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(normalized);
+    return JSON.parse(json) as JwtPayload;
+  } catch {
+    return null;
+  }
+}
+
+export function getCurrentUser(): JwtPayload | null {
+  const session = getSession();
+  if (!session) return null;
+  return decodeJwt(session.accessToken);
 }
