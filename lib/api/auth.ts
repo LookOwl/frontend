@@ -1,4 +1,9 @@
-import type { AuthSession, LoginCredentials } from "@/types/auth";
+import type {
+  AuthSession,
+  LoginCredentials,
+  RegisterCredentials,
+  RegisteredUser,
+} from "@/types/auth";
 import { API_BASE_URL, API_ENDPOINTS } from "./endpoints";
 
 type LoginResponse = {
@@ -6,8 +11,14 @@ type LoginResponse = {
   token_type: string;
 };
 
+type RegisterResponse = {
+  user_id: string;
+  role: RegisteredUser["role"];
+};
+
 export type AuthErrorCode =
   | "invalid_credentials"
+  | "email_taken"
   | "validation"
   | "server"
   | "network"
@@ -77,4 +88,56 @@ export async function loginUser(
 
   const data = (await response.json()) as LoginResponse;
   return mapSession(data);
+}
+
+export async function registerUser(
+  credentials: RegisterCredentials,
+): Promise<RegisteredUser> {
+  const url = new URL(API_ENDPOINTS.users.register, API_BASE_URL);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullname: credentials.fullname,
+        contact_number: credentials.contactNumber,
+        email: credentials.email,
+        password: credentials.password,
+        role: credentials.role,
+      }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new AuthError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 409) {
+    throw new AuthError("email_taken", "El correo ya está registrado.");
+  }
+
+  if (response.status === 422) {
+    throw new AuthError(
+      "validation",
+      "Revisa los datos: el correo debe ser válido, el teléfono debe tener 9 dígitos y ningún campo puede estar vacío.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new AuthError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new AuthError("unknown", "Ocurrió un error inesperado.");
+  }
+
+  const data = (await response.json()) as RegisterResponse;
+  return { userId: data.user_id, role: data.role };
 }
