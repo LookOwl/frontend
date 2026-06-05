@@ -3,6 +3,20 @@ export type UserRole = "lector" | "bibliotecario";
 export interface LoginCredentials {
   email: string;
   password: string;
+  role: UserRole;
+}
+
+export interface RegisterCredentials {
+  fullname: string;
+  contactNumber: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface RegisteredUser {
+  userId: string;
+  role: UserRole;
 }
 
 export interface AuthSession {

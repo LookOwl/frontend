@@ -7,5 +7,6 @@ export const API_ENDPOINTS = {
   },
   users: {
     login: "/api/users/login",
+    register: "/api/users/register",
   },
 } as const;
