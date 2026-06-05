@@ -1,50 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LoginForm } from "./_components/LoginForm";
+import { RegisterForm } from "./_components/RegisterForm";
 
 export const metadata: Metadata = {
-  title: "Iniciar sesión",
-  description: "Accede a tu cuenta para reservar y gestionar tus lecturas.",
+  title: "Crear cuenta",
+  description: "Regístrate para reservar y gestionar tus lecturas.",
 };
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ registered?: string }>;
-}) {
-  const { registered } = await searchParams;
-
+export default function RegisterPage() {
   return (
     <div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black">
       <div className="w-full max-w-md">
         <div className="rounded-xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           <header className="mb-6 flex flex-col gap-2">
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Iniciar sesión
+              Crear cuenta
             </h1>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Ingresa tu correo y contraseña para acceder al catálogo.
+              Completa tus datos para acceder al catálogo.
             </p>
           </header>
 
-          {registered ? (
-            <p
-              role="status"
-              className="mb-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/50 dark:text-green-300"
-            >
-              Cuenta creada correctamente. Ya puedes iniciar sesión.
-            </p>
-          ) : null}
-
-          <LoginForm />
+          <RegisterForm />
 
           <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            ¿No tienes cuenta?{" "}
+            ¿Ya tienes cuenta?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50"
             >
-              Regístrate
+              Inicia sesión
             </Link>
           </p>
         </div>
