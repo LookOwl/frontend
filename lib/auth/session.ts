@@ -1,4 +1,4 @@
-import type { AuthSession, JwtPayload } from "@/types/auth";
+import type { AuthSession, JwtPayload, UserRole } from "@/types/auth";
 
 const STORAGE_KEY = "lookowl.auth.session";
 
@@ -27,13 +27,30 @@ export function clearSession() {
   window.localStorage.removeItem(STORAGE_KEY);
 }
 
+// El backend serializa el rol con str(Enum), por lo que el JWT puede llegar
+// como "RolUsuario.BIBLIOTECARIO" / "RolUsuario.LECTOR" en lugar de
+// "bibliotecario" / "lector". Normalizamos aquí para que el resto del front
+// trabaje siempre con los valores limpios de UserRole.
+function normalizeRole(rawRole: unknown): UserRole | undefined {
+  if (typeof rawRole !== "string") return undefined;
+  const value = rawRole.includes(".")
+    ? rawRole.slice(rawRole.lastIndexOf(".") + 1)
+    : rawRole;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "bibliotecario") return "bibliotecario";
+  if (normalized === "lector") return "lector";
+  return undefined;
+}
+
 function decodeJwt(token: string): JwtPayload | null {
   const payload = token.split(".")[1];
   if (!payload) return null;
   try {
     const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
     const json = atob(normalized);
-    return JSON.parse(json) as JwtPayload;
+    const parsed = JSON.parse(json) as JwtPayload;
+    const role = normalizeRole(parsed.role);
+    return role ? { ...parsed, role } : parsed;
   } catch {
     return null;
   }
