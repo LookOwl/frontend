@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RegisterBookForm } from "./_components/RegisterBookForm";
+import { BookForm } from "../_components/BookForm";
 
 export const metadata: Metadata = {
   title: "Registrar libro",
@@ -20,7 +20,7 @@ export default function RegisterBookPage() {
             </p>
           </header>
 
-          <RegisterBookForm />
+          <BookForm />
         </div>
       </div>
     </div>
