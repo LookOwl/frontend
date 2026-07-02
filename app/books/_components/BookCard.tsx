@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Book } from "@/types/book";
 import { BadgeList } from "./BadgeList";
 import { BookCover } from "./BookCover";
@@ -21,12 +22,19 @@ function formatPublicationDate(value: string) {
 export function BookCard({ book }: BookCardProps) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950">
-      <BookCover src={book.coverUrl} alt={`Portada de ${book.title}`} />
+      <Link href={`/books/${book.id}`} aria-label={`Ver detalle de ${book.title}`}>
+        <BookCover src={book.coverUrl} alt={`Portada de ${book.title}`} />
+      </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <header className="flex flex-col gap-1">
           <h3 className="line-clamp-2 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
-            {book.title}
+            <Link
+              href={`/books/${book.id}`}
+              className="transition hover:underline focus:underline focus:outline-none"
+            >
+              {book.title}
+            </Link>
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {book.authors.join(", ")}

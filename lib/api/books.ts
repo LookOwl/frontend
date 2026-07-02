@@ -15,17 +15,19 @@ type BackendBook = {
   page_count: number;
 };
 
-type BooksResponse = {
-  data: BackendBook[];
+type SearchBooksResponse = {
+  result: BackendBook[];
   page: {
-    next_cursor: { offset: number };
+    offset: number;
+    limit: number;
     has_next: boolean;
   };
 };
 
 export type FetchBooksParams = {
-  title?: string;
-  author?: string;
+  // Texto libre que el backend busca en título, editorial, ISBN, autor y género.
+  // Vacío ("") devuelve todos los libros.
+  query?: string;
   limit?: number;
   offset?: number;
 };
@@ -81,19 +83,64 @@ function mapBook(raw: BackendBook): Book {
 export async function fetchBooks(
   params: FetchBooksParams = {},
 ): Promise<Book[] | null> {
-  const url = new URL(API_ENDPOINTS.books.list, API_BASE_URL);
-  if (params.title) url.searchParams.set("title", params.title);
-  if (params.author) url.searchParams.set("author", params.author);
-  if (params.limit != null) url.searchParams.set("limit", String(params.limit));
-  if (params.offset != null)
-    url.searchParams.set("offset", String(params.offset));
+  const url = new URL(API_ENDPOINTS.books.search, API_BASE_URL);
 
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: params.query ?? "",
+        limit: params.limit ?? 20,
+        offset: params.offset ?? 0,
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as SearchBooksResponse;
+    if (!json?.result?.length) return null;
+    return json.result.map(mapBook);
+  } catch {
+    return null;
+  }
+}
+
+export type BookCopyStatus = "DISPONIBLE" | "PRESTADO" | "DANADO";
+
+export type BookCopy = {
+  copyId: string;
+  status: BookCopyStatus;
+};
+
+export async function fetchBookCopies(id: number): Promise<BookCopy[] | null> {
+  const url = new URL(`/api/books/${id}/copies`, API_BASE_URL);
   try {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return null;
-    const json = (await res.json()) as BooksResponse;
-    if (!json?.data?.length) return null;
-    return json.data.map(mapBook);
+    const json = (await res.json()) as {
+      copies: { copy_id: string; status: string }[];
+    };
+    return json.copies.map((copy) => ({
+      copyId: copy.copy_id,
+      status: copy.status as BookCopyStatus,
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchRecommendations(
+  id: number,
+  limit = 8,
+): Promise<Book[] | null> {
+  const url = new URL(`/api/books/${id}/recommendations`, API_BASE_URL);
+  url.searchParams.set("limit", String(limit));
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { recommendations: BackendBook[] };
+    if (!json?.recommendations?.length) return null;
+    return json.recommendations.map(mapBook);
   } catch {
     return null;
   }

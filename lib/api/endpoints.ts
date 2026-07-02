@@ -3,7 +3,7 @@ export const API_BASE_URL =
 
 export const API_ENDPOINTS = {
   books: {
-    list: "/api/books/",
+    search: "/api/books/search",
     register: "/api/books/register",
     borrow: "/api/books/borrow",
   },
