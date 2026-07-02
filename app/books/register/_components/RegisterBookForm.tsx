@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookError, registerBook } from "@/lib/api/books";
+import { uploadCover, UploadError } from "@/lib/api/upload";
 import { getCurrentUser, getSession } from "@/lib/auth/session";
 
 type FormState = {
@@ -53,6 +54,8 @@ export function RegisterBookForm() {
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = () => {
@@ -70,6 +73,27 @@ export function RegisterBookForm() {
 
   function updateField<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setIsUploading(true);
+    try {
+      const url = await uploadCover(file);
+      updateField("coverUrl", url);
+    } catch (err) {
+      updateField("coverUrl", "");
+      setUploadError(
+        err instanceof UploadError
+          ? err.message
+          : "No se pudo subir la imagen. Intenta de nuevo.",
+      );
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -153,6 +177,7 @@ export function RegisterBookForm() {
     form.editorial.trim() &&
     form.publicationDate &&
     form.coverUrl.trim() &&
+    !isUploading &&
     form.language.trim().length === 2 &&
     splitList(form.authors).length > 0 &&
     splitList(form.categories).length > 0 &&
@@ -274,19 +299,38 @@ export function RegisterBookForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="coverUrl" className={labelClassName}>
-          URL de portada
+        <label htmlFor="cover" className={labelClassName}>
+          Portada
         </label>
         <input
-          id="coverUrl"
-          type="url"
-          required
-          value={form.coverUrl}
-          onChange={(event) => updateField("coverUrl", event.target.value)}
-          disabled={isSubmitting}
-          className={inputClassName}
-          placeholder="https://ejemplo.com/portada.jpg"
+          id="cover"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleCoverChange}
+          disabled={isSubmitting || isUploading}
+          className={`${inputClassName} file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-zinc-700 dark:file:bg-zinc-800 dark:file:text-zinc-200`}
         />
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          JPG, PNG o WebP. Máximo 5 MB.
+        </p>
+        {isUploading ? (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Subiendo imagen…
+          </p>
+        ) : null}
+        {uploadError ? (
+          <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+            {uploadError}
+          </p>
+        ) : null}
+        {form.coverUrl && !isUploading ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={form.coverUrl}
+            alt="Vista previa de la portada"
+            className="mt-1 h-40 w-auto rounded-md border border-zinc-200 object-cover dark:border-zinc-700"
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-1.5">
