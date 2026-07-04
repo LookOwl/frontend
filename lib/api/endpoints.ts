@@ -4,6 +4,7 @@ export const API_BASE_URL =
 export const API_ENDPOINTS = {
   books: {
     search: "/api/books/search",
+    advancedSearch: "/api/books/advanced_search",
     register: "/api/books/register",
   },
   requests: {

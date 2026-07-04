@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BooksCatalog } from "./_components/BooksCatalog";
 import { fetchBooks } from "@/lib/api/books";
 import { mockBooks } from "@/lib/mock-books";
@@ -26,6 +27,12 @@ export default async function BooksPage() {
           <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             {books.length} libros disponibles
           </p>
+          <Link
+            href="/books/search"
+            className="w-fit text-sm font-medium text-zinc-700 underline underline-offset-2 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
+          >
+            Búsqueda avanzada →
+          </Link>
         </header>
 
         <BooksCatalog books={books} />

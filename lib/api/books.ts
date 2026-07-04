@@ -118,6 +118,58 @@ export async function fetchBooks(
   }
 }
 
+export type SortBy = "id" | "title" | "date";
+
+export type AdvancedSearchInput = {
+  title?: string;
+  authors?: string[];
+  categories?: string[];
+  isbn?: string;
+  language?: string;
+  editorial?: string;
+  sortBy?: SortBy;
+  ascending?: boolean;
+  limit?: number;
+  offset?: number;
+};
+
+export async function advancedSearchBooks(
+  input: AdvancedSearchInput,
+): Promise<Book[] | null> {
+  const url = new URL(API_ENDPOINTS.books.advancedSearch, API_BASE_URL);
+
+  const trim = (value?: string) => {
+    const v = value?.trim();
+    return v ? v : null;
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: trim(input.title),
+        authors: input.authors ?? [],
+        category: input.categories ?? [],
+        isbn: trim(input.isbn),
+        language: trim(input.language),
+        editorial: trim(input.editorial),
+        sort_by: input.sortBy ?? "id",
+        ascending: input.ascending ?? true,
+        limit: input.limit ?? 20,
+        offset: input.offset ?? 0,
+      }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as SearchBooksResponse;
+    if (!json?.result?.length) return null;
+    return json.result.map(mapBook);
+  } catch {
+    return null;
+  }
+}
+
 export type BookCopyStatus = "DISPONIBLE" | "PRESTADO" | "DANADO";
 
 export type BookCopy = {
