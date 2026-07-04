@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     create: "/api/request/",
   },
   loans: {
+    start: "/api/loans/start",
     return: "/api/loans/return",
   },
   users: {
