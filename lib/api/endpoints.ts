@@ -9,6 +9,9 @@ export const API_ENDPOINTS = {
   requests: {
     create: "/api/request/",
   },
+  loans: {
+    return: "/api/loans/return",
+  },
   users: {
     login: "/api/users/login",
     register: "/api/users/register",
