@@ -400,6 +400,71 @@ export async function updateBook(
   }
 }
 
+export async function deleteBook(
+  bookId: number,
+  accessToken: string,
+): Promise<void> {
+  const url = new URL(`/api/books/${bookId}`, API_BASE_URL);
+  await runDelete(url, accessToken, "Solo los bibliotecarios pueden eliminar libros.", "No se pudo eliminar el libro.");
+}
+
+export async function deleteBookCopy(
+  copyId: string,
+  accessToken: string,
+): Promise<void> {
+  const url = new URL(`/api/book-copies/${encodeURIComponent(copyId)}`, API_BASE_URL);
+  await runDelete(url, accessToken, "Solo los bibliotecarios pueden eliminar copias.", "No se pudo eliminar la copia.");
+}
+
+// Manejo común de las peticiones DELETE de inventario (libros y copias).
+async function runDelete(
+  url: URL,
+  accessToken: string,
+  forbiddenMsg: string,
+  conflictMsg: string,
+): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+  } catch {
+    throw new BookError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new BookError(
+      "unauthorized",
+      "Tu sesión expiró o no es válida. Inicia sesión de nuevo.",
+    );
+  }
+
+  if (response.status === 403) {
+    throw new BookError("forbidden", forbiddenMsg);
+  }
+
+  // 409: no se pudo eliminar (p. ej. tiene préstamos o copias asociadas).
+  if (response.status === 409) {
+    throw new BookError("conflict", conflictMsg);
+  }
+
+  if (response.status >= 500) {
+    throw new BookError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new BookError("unknown", "Ocurrió un error inesperado.");
+  }
+}
+
 export type RequestLoanInput = {
   bookId: number;
   daysRequested: number;
