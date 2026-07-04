@@ -3,7 +3,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookError, registerBook } from "@/lib/api/books";
+import { BookError, registerBook, updateBook } from "@/lib/api/books";
 import { uploadCover, UploadError } from "@/lib/api/upload";
 import { getCurrentUser, getSession } from "@/lib/auth/session";
 
@@ -20,7 +20,7 @@ type FormState = {
   pageCount: string;
 };
 
-const INITIAL_STATE: FormState = {
+const EMPTY_STATE: FormState = {
   title: "",
   isbn: "",
   description: "",
@@ -47,12 +47,27 @@ function splitList(value: string): string[] {
     .filter((item) => item.length > 0);
 }
 
-export function RegisterBookForm() {
+export type BookFormProps = {
+  mode?: "create" | "edit";
+  bookId?: number;
+  initialValues?: Partial<FormState>;
+};
+
+export function BookForm({
+  mode = "create",
+  bookId,
+  initialValues,
+}: BookFormProps) {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(INITIAL_STATE);
+  const isEdit = mode === "edit";
+  const [form, setForm] = useState<FormState>({
+    ...EMPTY_STATE,
+    ...initialValues,
+  });
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [error, setError] = useState<string | null>(null);
   const [createdId, setCreatedId] = useState<number | null>(null);
+  const [saved, setSaved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -100,6 +115,7 @@ export function RegisterBookForm() {
     event.preventDefault();
     setError(null);
     setCreatedId(null);
+    setSaved(false);
 
     const session = getSession();
     if (!session) {
@@ -109,23 +125,28 @@ export function RegisterBookForm() {
 
     setIsSubmitting(true);
     try {
-      const id = await registerBook(
-        {
-          title: form.title.trim(),
-          isbn: form.isbn.trim(),
-          description: form.description.trim(),
-          editorial: form.editorial.trim(),
-          publicationDate: form.publicationDate,
-          coverUrl: form.coverUrl.trim(),
-          language: form.language.trim().toLowerCase(),
-          authors: splitList(form.authors),
-          categories: splitList(form.categories),
-          pageCount: Number(form.pageCount),
-        },
-        session.accessToken,
-      );
-      setCreatedId(id);
-      setForm(INITIAL_STATE);
+      const payload = {
+        title: form.title.trim(),
+        isbn: form.isbn.trim(),
+        description: form.description.trim(),
+        editorial: form.editorial.trim(),
+        publicationDate: form.publicationDate,
+        coverUrl: form.coverUrl.trim(),
+        language: form.language.trim().toLowerCase(),
+        authors: splitList(form.authors),
+        categories: splitList(form.categories),
+        pageCount: Number(form.pageCount),
+      };
+
+      if (isEdit && bookId != null) {
+        await updateBook(bookId, payload, session.accessToken);
+        setSaved(true);
+        router.refresh();
+      } else {
+        const id = await registerBook(payload, session.accessToken);
+        setCreatedId(id);
+        setForm(EMPTY_STATE);
+      }
     } catch (err) {
       if (err instanceof BookError) {
         if (err.code === "unauthorized") {
@@ -148,7 +169,8 @@ export function RegisterBookForm() {
     return (
       <div className="flex flex-col gap-4">
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
-          Necesitas iniciar sesión como bibliotecario para registrar libros.
+          Necesitas iniciar sesión como bibliotecario para{" "}
+          {isEdit ? "editar" : "registrar"} libros.
         </p>
         <button
           type="button"
@@ -164,8 +186,8 @@ export function RegisterBookForm() {
   if (authState === "forbidden") {
     return (
       <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/50 dark:text-red-300">
-        Solo los bibliotecarios pueden registrar libros. Tu cuenta no tiene
-        permisos para esta acción.
+        Solo los bibliotecarios pueden {isEdit ? "editar" : "registrar"} libros.
+        Tu cuenta no tiene permisos para esta acción.
       </p>
     );
   }
@@ -312,6 +334,7 @@ export function RegisterBookForm() {
         />
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
           JPG, PNG o WebP. Máximo 5 MB.
+          {isEdit ? " Deja este campo si quieres conservar la portada actual." : ""}
         </p>
         {isUploading ? (
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -410,12 +433,35 @@ export function RegisterBookForm() {
         </p>
       ) : null}
 
+      {saved ? (
+        <p
+          role="status"
+          className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/50 dark:text-green-300"
+        >
+          Cambios guardados correctamente.{" "}
+          {bookId != null ? (
+            <Link
+              href={`/books/${bookId}`}
+              className="font-medium underline underline-offset-4"
+            >
+              Ver libro
+            </Link>
+          ) : null}
+        </p>
+      ) : null}
+
       <button
         type="submit"
         disabled={isSubmitting || !requiredFilled}
         className="mt-2 inline-flex items-center justify-center rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
       >
-        {isSubmitting ? "Registrando..." : "Registrar libro"}
+        {isEdit
+          ? isSubmitting
+            ? "Guardando..."
+            : "Guardar cambios"
+          : isSubmitting
+            ? "Registrando..."
+            : "Registrar libro"}
       </button>
     </form>
   );

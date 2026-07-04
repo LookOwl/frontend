@@ -13,6 +13,7 @@ import { BookCover } from "../_components/BookCover";
 import { BorrowButton } from "../_components/BorrowButton";
 import { BookList } from "../_components/BookList";
 import { BookAvailability } from "./_components/BookAvailability";
+import { EditBookLink } from "./_components/EditBookLink";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -147,8 +148,11 @@ export default async function BookDetailPage({ params }: PageProps) {
               <BookAvailability copies={copies} />
             </section>
 
-            <div className="max-w-xs">
-              <BorrowButton bookId={book.id} />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="max-w-xs">
+                <BorrowButton bookId={book.id} />
+              </div>
+              <EditBookLink bookId={book.id} />
             </div>
           </div>
         </div>
