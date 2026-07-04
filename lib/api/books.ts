@@ -80,6 +80,19 @@ function mapBook(raw: BackendBook): Book {
   };
 }
 
+export async function fetchBookById(id: number): Promise<Book | null> {
+  const url = new URL(`/api/books/${id}`, API_BASE_URL);
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    // El backend responde 404 cuando el libro no existe.
+    if (!res.ok) return null;
+    const raw = (await res.json()) as BackendBook;
+    return mapBook(raw);
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchBooks(
   params: FetchBooksParams = {},
 ): Promise<Book[] | null> {

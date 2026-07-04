@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { Book } from "@/types/book";
 import {
-  fetchBooks,
+  fetchBookById,
   fetchBookCopies,
   fetchRecommendations,
 } from "@/lib/api/books";
@@ -32,11 +32,12 @@ function formatPublicationDate(value: string) {
   return dateFormatter.format(date);
 }
 
-// No existe un endpoint para traer un libro por id, así que lo obtenemos vía
-// POST /api/books/search (query vacía = todos los libros) y filtramos por id.
+// Obtenemos el libro por su endpoint dedicado GET /api/books/{id}. Si la API
+// no responde (p. ej. en desarrollo sin backend), caemos a los datos mock.
 async function getBookById(id: number): Promise<Book | null> {
-  const books = (await fetchBooks({ query: "", limit: 1000 })) ?? mockBooks;
-  return books.find((book) => book.id === id) ?? null;
+  const book = await fetchBookById(id);
+  if (book) return book;
+  return mockBooks.find((mock) => mock.id === id) ?? null;
 }
 
 export async function generateMetadata({
