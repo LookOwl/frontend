@@ -21,4 +21,7 @@ export const API_ENDPOINTS = {
     login: "/api/users/login",
     register: "/api/users/register",
   },
+  chat: {
+    send: "/api/chat",
+  },
 } as const;
