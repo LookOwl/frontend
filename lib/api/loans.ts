@@ -202,6 +202,49 @@ function mapLoan(raw: BackendLoan): Loan {
 }
 
 /**
+ * Obtiene los préstamos del usuario autenticado (cualquier rol).
+ * Devuelve préstamos en todos los estados; el filtrado activos/históricos se
+ * hace en la capa de UI.
+ */
+export async function fetchUserLoans(accessToken: string): Promise<Loan[]> {
+  const url = new URL(API_ENDPOINTS.loans.user, API_BASE_URL);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+  } catch {
+    throw new LoanError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new LoanError(
+      "unauthorized",
+      "Tu sesión expiró o no es válida. Inicia sesión de nuevo.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new LoanError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new LoanError("unknown", "Ocurrió un error inesperado.");
+  }
+
+  const data = (await response.json()) as BackendLoan[];
+  return data.map(mapLoan);
+}
+
+/**
  * Obtiene el historial de préstamos de un libro concreto (rol BIBLIOTECARIO).
  * Devuelve préstamos en todos los estados; el filtrado por estado se hace en la
  * capa de UI.

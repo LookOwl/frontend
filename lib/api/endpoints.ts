@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   loans: {
     start: "/api/loans/start",
     return: "/api/loans/return",
+    user: "/api/loans/user",
     byBook: (bookId: number) => `/api/loans/${bookId}`,
   },
   users: {
