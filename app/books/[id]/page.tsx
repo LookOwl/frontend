@@ -15,6 +15,7 @@ import { BookList } from "../_components/BookList";
 import { BookAvailability } from "./_components/BookAvailability";
 import { BookLoans } from "./_components/BookLoans";
 import { EditBookLink } from "./_components/EditBookLink";
+import { RequestQueue } from "./_components/RequestQueue";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -168,6 +169,7 @@ export default async function BookDetailPage({ params }: PageProps) {
           </section>
         ) : null}
 
+        <RequestQueue bookId={book.id} />
         <BookLoans bookId={book.id} />
       </div>
     </div>

@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
   },
   requests: {
     create: "/api/request/",
+    assign: "/api/request/assign",
+    byBook: (bookId: number) => `/api/request/${bookId}`,
   },
   loans: {
     start: "/api/loans/start",
