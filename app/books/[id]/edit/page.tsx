@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { Book } from "@/types/book";
-import { fetchBooks } from "@/lib/api/books";
+import { fetchBookById } from "@/lib/api/books";
 import { mockBooks } from "@/lib/mock-books";
 import { BookForm } from "../../_components/BookForm";
 
@@ -15,10 +15,12 @@ export const metadata: Metadata = {
   description: "Corrige o actualiza los datos de un libro del catálogo.",
 };
 
-// No existe endpoint por id: obtenemos el libro vía POST /api/books/search.
+// Obtenemos el libro por su endpoint dedicado GET /api/books/{id}, con fallback
+// a los datos mock si la API no responde (p. ej. en desarrollo sin backend).
 async function getBookById(id: number): Promise<Book | null> {
-  const books = (await fetchBooks({ query: "", limit: 1000 })) ?? mockBooks;
-  return books.find((book) => book.id === id) ?? null;
+  const book = await fetchBookById(id);
+  if (book) return book;
+  return mockBooks.find((mock) => mock.id === id) ?? null;
 }
 
 export default async function EditBookPage({ params }: PageProps) {
