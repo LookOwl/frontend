@@ -24,4 +24,7 @@ export const API_ENDPOINTS = {
   chat: {
     send: "/api/chat",
   },
+  recommendations: {
+    byQuery: "/api/recommendations/by-query",
+  },
 } as const;

@@ -159,6 +159,24 @@ export async function fetchRecommendations(
   }
 }
 
+export async function fetchRecommendationsByQuery(
+  query: string,
+  limit = 12,
+): Promise<Book[] | null> {
+  const url = new URL(API_ENDPOINTS.recommendations.byQuery, API_BASE_URL);
+  url.searchParams.set("query", query);
+  url.searchParams.set("limit", String(limit));
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { recommendations: BackendBook[] };
+    if (!json?.recommendations?.length) return null;
+    return json.recommendations.map(mapBook);
+  } catch {
+    return null;
+  }
+}
+
 export async function registerBook(
   input: RegisterBookInput,
   accessToken: string,
