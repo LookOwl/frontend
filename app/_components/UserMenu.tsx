@@ -45,12 +45,20 @@ export function UserMenu() {
   return (
     <div className="flex items-center gap-4">
       {isLibrarian ? (
-        <Link
-          href="/books/register"
-          className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-        >
-          Registrar libro
-        </Link>
+        <>
+          <Link
+            href="/books/register"
+            className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          >
+            Registrar libro
+          </Link>
+          <Link
+            href="/loans/return"
+            className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          >
+            Registrar devolución
+          </Link>
+        </>
       ) : null}
       <button
         type="button"
