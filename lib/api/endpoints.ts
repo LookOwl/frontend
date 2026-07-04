@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   loans: {
     start: "/api/loans/start",
     return: "/api/loans/return",
+    byBook: (bookId: number) => `/api/loans/${bookId}`,
   },
   users: {
     login: "/api/users/login",

@@ -1,5 +1,24 @@
 import { API_BASE_URL, API_ENDPOINTS } from "./endpoints";
 
+export type LoanStatus =
+  | "PENDIENTE"
+  | "CANCELADO"
+  | "ACTIVO"
+  | "CONCLUIDO"
+  | "PERDIDO"
+  | "VENCIDO";
+
+export type Loan = {
+  id: number;
+  userId: number;
+  bookCopyId: number;
+  bookId: number;
+  approvalDate: string;
+  dueDate: string;
+  returnDate: string | null;
+  status: LoanStatus;
+};
+
 export type LoanErrorCode =
   | "unauthorized"
   | "not_found"
@@ -156,4 +175,74 @@ export async function returnBook(
   if (!response.ok) {
     throw new LoanError("unknown", "Ocurrió un error inesperado.");
   }
+}
+
+type BackendLoan = {
+  id: number;
+  user_id: number;
+  book_copy_id: number;
+  book_id: number;
+  approval_date: string;
+  due_date: string;
+  return_date: string | null;
+  status: LoanStatus;
+};
+
+function mapLoan(raw: BackendLoan): Loan {
+  return {
+    id: raw.id,
+    userId: raw.user_id,
+    bookCopyId: raw.book_copy_id,
+    bookId: raw.book_id,
+    approvalDate: raw.approval_date,
+    dueDate: raw.due_date,
+    returnDate: raw.return_date,
+    status: raw.status,
+  };
+}
+
+/**
+ * Obtiene el historial de préstamos de un libro concreto (rol BIBLIOTECARIO).
+ * Devuelve préstamos en todos los estados; el filtrado por estado se hace en la
+ * capa de UI.
+ */
+export async function fetchBookLoans(
+  bookId: number,
+  accessToken: string,
+): Promise<Loan[]> {
+  const url = new URL(API_ENDPOINTS.loans.byBook(bookId), API_BASE_URL);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+  } catch {
+    throw new LoanError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new LoanError(
+      "unauthorized",
+      "Tu sesión expiró o no tienes permisos de bibliotecario. Inicia sesión de nuevo.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new LoanError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new LoanError("unknown", "Ocurrió un error inesperado.");
+  }
+
+  const data = (await response.json()) as BackendLoan[];
+  return data.map(mapLoan);
 }

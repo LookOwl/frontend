@@ -13,6 +13,7 @@ import { BookCover } from "../_components/BookCover";
 import { BorrowButton } from "../_components/BorrowButton";
 import { BookList } from "../_components/BookList";
 import { BookAvailability } from "./_components/BookAvailability";
+import { BookLoans } from "./_components/BookLoans";
 import { EditBookLink } from "./_components/EditBookLink";
 
 type PageProps = {
@@ -165,6 +166,8 @@ export default async function BookDetailPage({ params }: PageProps) {
             <BookList books={recommendations} />
           </section>
         ) : null}
+
+        <BookLoans bookId={book.id} />
       </div>
     </div>
   );
