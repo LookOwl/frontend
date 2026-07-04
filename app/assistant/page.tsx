@@ -78,7 +78,7 @@ export default function AssistantPage() {
           </p>
         </header>
 
-        <div className="flex min-h-[320px] flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="flex min-h-80 flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
           {messages.length === 0 && !isSending ? (
             <p className="m-auto text-sm text-zinc-400 dark:text-zinc-500">
               Escribe tu consulta para empezar. Por ejemplo: «Busco novelas de
