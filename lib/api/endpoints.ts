@@ -5,7 +5,9 @@ export const API_ENDPOINTS = {
   books: {
     search: "/api/books/search",
     register: "/api/books/register",
-    borrow: "/api/books/borrow",
+  },
+  requests: {
+    create: "/api/request/",
   },
   users: {
     login: "/api/users/login",

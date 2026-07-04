@@ -234,7 +234,7 @@ export async function updateBook(
   let response: Response;
   try {
     response = await fetch(url, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
@@ -310,10 +310,7 @@ export async function requestLoan(
   input: RequestLoanInput,
   accessToken: string,
 ): Promise<void> {
-  const url = new URL(
-    `${API_ENDPOINTS.books.borrow}/${input.bookId}`,
-    API_BASE_URL,
-  );
+  const url = new URL(API_ENDPOINTS.requests.create, API_BASE_URL);
 
   let response: Response;
   try {
