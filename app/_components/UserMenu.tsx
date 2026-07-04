@@ -53,16 +53,10 @@ export function UserMenu() {
             Registrar libro
           </Link>
           <Link
-            href="/loans/start"
+            href="/loans"
             className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
           >
-            Registrar préstamo
-          </Link>
-          <Link
-            href="/loans/return"
-            className="text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-          >
-            Registrar devolución
+            Préstamos
           </Link>
         </>
       ) : null}
