@@ -14,6 +14,7 @@ import { BorrowButton } from "../_components/BorrowButton";
 import { BookList } from "../_components/BookList";
 import { BookAvailability } from "./_components/BookAvailability";
 import { BookLoans } from "./_components/BookLoans";
+import { RegisterCopyForm } from "./_components/RegisterCopyForm";
 import { EditBookLink } from "./_components/EditBookLink";
 import { RequestQueue } from "./_components/RequestQueue";
 
@@ -149,6 +150,7 @@ export default async function BookDetailPage({ params }: PageProps) {
                 Disponibilidad
               </h2>
               <BookAvailability copies={copies} />
+              <RegisterCopyForm bookId={book.id} />
             </section>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

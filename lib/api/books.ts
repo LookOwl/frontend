@@ -142,6 +142,75 @@ export async function fetchBookCopies(id: number): Promise<BookCopy[] | null> {
   }
 }
 
+export async function registerBookCopy(
+  bookId: number,
+  input: { copyId: string; status: BookCopyStatus },
+  accessToken: string,
+): Promise<void> {
+  const url = new URL(`/api/books/${bookId}/copies`, API_BASE_URL);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        copy_id: input.copyId,
+        status: input.status,
+      }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new BookError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new BookError(
+      "unauthorized",
+      "Tu sesión expiró o no es válida. Inicia sesión de nuevo.",
+    );
+  }
+
+  if (response.status === 403) {
+    throw new BookError(
+      "forbidden",
+      "Solo los bibliotecarios pueden registrar copias.",
+    );
+  }
+
+  // 409: no se pudo crear la copia (p. ej. el código ya existe).
+  if (response.status === 409) {
+    throw new BookError(
+      "conflict",
+      "No se pudo crear la copia. Puede que el código ya exista.",
+    );
+  }
+
+  if (response.status === 422) {
+    throw new BookError(
+      "validation",
+      "Revisa los datos: el código de copia no puede estar vacío.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new BookError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new BookError("unknown", "Ocurrió un error inesperado.");
+  }
+}
+
 export async function fetchRecommendations(
   id: number,
   limit = 8,
