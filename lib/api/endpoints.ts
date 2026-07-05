@@ -21,6 +21,8 @@ export const API_ENDPOINTS = {
   users: {
     login: "/api/users/login",
     register: "/api/users/register",
+    notifications: "/api/users/notifications",
+    notificationById: (id: number) => `/api/users/notifications/${id}`,
   },
   chat: {
     send: "/api/chat",

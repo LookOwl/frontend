@@ -177,6 +177,67 @@ export type BookCopy = {
   status: BookCopyStatus;
 };
 
+export async function updateBookCopyStatus(
+  copyId: string,
+  status: BookCopyStatus,
+  accessToken: string,
+): Promise<void> {
+  const url = new URL(
+    `/api/book-copies/${encodeURIComponent(copyId)}`,
+    API_BASE_URL,
+  );
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ status }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new BookError(
+      "network",
+      "No se pudo conectar con el servidor. Intenta de nuevo.",
+    );
+  }
+
+  if (response.status === 401) {
+    throw new BookError(
+      "unauthorized",
+      "Tu sesión expiró o no es válida. Inicia sesión de nuevo.",
+    );
+  }
+
+  if (response.status === 403) {
+    throw new BookError(
+      "forbidden",
+      "Solo los bibliotecarios pueden cambiar el estado de una copia.",
+    );
+  }
+
+  if (response.status === 409) {
+    throw new BookError(
+      "conflict",
+      "No se pudo actualizar el estado de la copia.",
+    );
+  }
+
+  if (response.status >= 500) {
+    throw new BookError(
+      "server",
+      "El servidor no respondió correctamente. Intenta más tarde.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new BookError("unknown", "Ocurrió un error inesperado.");
+  }
+}
+
 export async function fetchBookCopies(id: number): Promise<BookCopy[] | null> {
   const url = new URL(`/api/books/${id}/copies`, API_BASE_URL);
   try {
