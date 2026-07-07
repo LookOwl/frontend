@@ -25,7 +25,7 @@ export async function uploadCover(file: File): Promise<string> {
 
   const supabase = createClient();
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const path = `${crypto.randomUUID()}.${ext}`;
+  const path = `public/${crypto.randomUUID()}.${ext}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     contentType: file.type,
