@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { clearSession, getCurrentUser, getSession } from "@/lib/auth/session";
+import {
+  clearSession,
+  getCurrentUser,
+  getSession,
+  onSessionChange,
+} from "@/lib/auth/session";
 
 export function UserMenu() {
   const router = useRouter();
@@ -16,15 +21,12 @@ export function UserMenu() {
       setIsLibrarian(getCurrentUser()?.role === "bibliotecario");
     };
     sync();
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return onSessionChange(sync);
   }, []);
 
   function handleLogout() {
     clearSession();
-    setIsAuthenticated(false);
     router.push("/login");
-    router.refresh();
   }
 
   if (isAuthenticated === null) {

@@ -60,7 +60,6 @@ export function RegisterForm() {
         const session = await loginUser({
           email,
           password: form.password,
-          role: form.role,
         });
         saveSession(session);
         router.push("/books");
