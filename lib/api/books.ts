@@ -362,7 +362,7 @@ export async function fetchRecommendationsByQuery(
 export async function registerBook(
   input: RegisterBookInput,
   accessToken: string,
-): Promise<number> {
+): Promise<void> {
   const url = new URL(API_ENDPOINTS.books.register, API_BASE_URL);
 
   let response: Response;
@@ -432,9 +432,8 @@ export async function registerBook(
   if (!response.ok) {
     throw new BookError("unknown", "Ocurrió un error inesperado.");
   }
-
-  const data = (await response.json()) as { id: number };
-  return data.id;
+  // El backend responde 200 con body `null` y no devuelve el id del libro,
+  // así que no leemos la respuesta: basta con que el status sea exitoso.
 }
 
 export async function updateBook(

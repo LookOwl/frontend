@@ -66,7 +66,7 @@ export function BookForm({
   });
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [error, setError] = useState<string | null>(null);
-  const [createdId, setCreatedId] = useState<number | null>(null);
+  const [created, setCreated] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -114,7 +114,7 @@ export function BookForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setCreatedId(null);
+    setCreated(false);
     setSaved(false);
 
     const session = getSession();
@@ -143,8 +143,8 @@ export function BookForm({
         setSaved(true);
         router.refresh();
       } else {
-        const id = await registerBook(payload, session.accessToken);
-        setCreatedId(id);
+        await registerBook(payload, session.accessToken);
+        setCreated(true);
         setForm(EMPTY_STATE);
       }
     } catch (err) {
@@ -420,12 +420,12 @@ export function BookForm({
         </p>
       ) : null}
 
-      {createdId !== null ? (
+      {created ? (
         <p
           role="status"
           className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900/50 dark:bg-green-950/50 dark:text-green-300"
         >
-          Libro registrado correctamente (ID {createdId}).{" "}
+          Libro registrado correctamente.{" "}
           <Link href="/books" className="font-medium underline underline-offset-4">
             Ver catálogo
           </Link>
