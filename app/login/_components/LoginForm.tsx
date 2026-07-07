@@ -4,15 +4,13 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AuthError, loginUser } from "@/lib/api/auth";
 import { saveSession } from "@/lib/auth/session";
-import type { UserRole } from "@/types/auth";
 
 type FormState = {
   email: string;
   password: string;
-  role: UserRole;
 };
 
-const INITIAL_STATE: FormState = { email: "", password: "", role: "lector" };
+const INITIAL_STATE: FormState = { email: "", password: "" };
 
 export function LoginForm() {
   const router = useRouter();
@@ -33,7 +31,6 @@ export function LoginForm() {
       const session = await loginUser({
         email: form.email.trim(),
         password: form.password,
-        role: form.role,
       });
       saveSession(session);
       router.push("/books");
@@ -91,29 +88,6 @@ export function LoginForm() {
           className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
           placeholder="••••••••"
         />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="role"
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-        >
-          Tipo de cuenta
-        </label>
-        <select
-          id="role"
-          name="role"
-          required
-          value={form.role}
-          onChange={(event) =>
-            updateField("role", event.target.value as UserRole)
-          }
-          disabled={isSubmitting}
-          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-50 dark:focus:ring-zinc-50"
-        >
-          <option value="lector">Lector</option>
-          <option value="bibliotecario">Bibliotecario</option>
-        </select>
       </div>
 
       {error ? (
