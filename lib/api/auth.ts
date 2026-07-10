@@ -2,18 +2,12 @@ import type {
   AuthSession,
   LoginCredentials,
   RegisterCredentials,
-  RegisteredUser,
 } from "@/types/auth";
 import { API_BASE_URL, API_ENDPOINTS } from "./endpoints";
 
 type LoginResponse = {
   access_token: string;
   token_type: string;
-};
-
-type RegisterResponse = {
-  user_id: string;
-  role: RegisteredUser["role"];
 };
 
 export type AuthErrorCode =
@@ -92,7 +86,7 @@ export async function loginUser(
 
 export async function registerUser(
   credentials: RegisterCredentials,
-): Promise<RegisteredUser> {
+): Promise<void> {
   const url = new URL(API_ENDPOINTS.users.register, API_BASE_URL);
 
   let response: Response;
@@ -138,6 +132,7 @@ export async function registerUser(
     throw new AuthError("unknown", "Ocurrió un error inesperado.");
   }
 
-  const data = (await response.json()) as RegisterResponse;
-  return { userId: data.user_id, role: data.role };
+  // El backend responde 200 con cuerpo vacío (`null`) en /register.
+  // No hay nada que consumir: el status ok confirma el registro y el
+  // formulario inicia sesión aparte con /login.
 }
